@@ -145,3 +145,52 @@ footer {
     letter-spacing: 1.5px;
   }
 }
+.world-preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 35px;
+}
+
+.world-card {
+  min-height: 155px;
+  padding: 22px 16px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.025);
+  transition: .3s;
+}
+
+.world-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-5px);
+}
+
+.world-card span {
+  color: var(--gold);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.world-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 23px;
+  font-weight: 500;
+  margin-top: 22px;
+}
+
+.world-card p {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 8px;
+}
+
+@media (max-width: 600px) {
+  .world-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .world-card {
+    min-height: 125px;
+  }
+}
+
