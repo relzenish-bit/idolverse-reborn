@@ -297,5 +297,154 @@ button.secondary {
     font-size: 17px;
   }
 }
+/* IDOLVERSE CHARACTER CREATOR */
+
+.wizard-progress {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 35px 0;
+}
+
+.progress-step {
+  padding: 12px 5px;
+  border-bottom: 2px solid var(--line);
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.progress-step span {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 11px;
+}
+
+.progress-step.active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.creator-content {
+  animation: creatorEnter .4s ease;
+}
+
+@keyframes creatorEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.creator-content label {
+  display: block;
+  margin: 25px 0 10px;
+  color: var(--gold);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.creator-input {
+  display: block;
+  width: 100%;
+  padding: 17px;
+  background: #111318;
+  border: 1px solid var(--line);
+  color: var(--text);
+  font: inherit;
+  outline: none;
+  border-radius: 3px;
+}
+
+.creator-input:focus {
+  border-color: var(--gold);
+}
+
+textarea.creator-input {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.choice-card {
+  width: 100%;
+  min-height: 105px;
+  margin: 0;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 9px;
+  background: #111318;
+  border: 1px solid var(--line);
+  color: var(--text);
+  text-align: left;
+  letter-spacing: 0;
+}
+
+.choice-card span,
+.choice-card small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.choice-card strong {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.choice-card.selected {
+  border-color: var(--gold);
+  background: linear-gradient(145deg, #292218, #111318);
+  box-shadow: inset 0 0 25px rgba(199,168,121,.08);
+}
+
+.creator-navigation {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 35px;
+}
+
+.creator-navigation button {
+  margin-top: 0;
+}
+
+.creator-navigation .secondary {
+  margin-left: 0;
+}
+
+@media (max-width: 600px) {
+  .wizard-progress {
+    gap: 3px;
+  }
+
+  .progress-step {
+    font-size: 8px;
+    letter-spacing: 0;
+  }
+
+  .choice-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .choice-card {
+    padding: 13px;
+    min-height: 100px;
+  }
+
+  .choice-card strong {
+    font-size: 15px;
+  }
+}
+
 
 
