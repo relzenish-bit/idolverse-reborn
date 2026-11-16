@@ -891,7 +891,11 @@ function openLife(slot) {currentScreen = "dashboard";
   app.innerHTML = `
     <main class="welcome life-dashboard dashboard-v2">
 
-      <div class="brand">IDOL<span>VERSE</span></div>
+   <div class="game-navigation">
+  <button data-nav-back>← BACK</button>
+  <button data-nav-home>⌂ HOME</button>
+  <button data-nav-lives>MY LIVES</button>
+</div>   <div class="brand">IDOL<span>VERSE</span></div>
       <p class="eyebrow">YOUR LIFE · YOUR STORY</p>
 
       <section class="dashboard-identity">
