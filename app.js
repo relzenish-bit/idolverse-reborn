@@ -542,50 +542,156 @@ function openLife(slot) {
     return;
   }
 
+  const level = Math.max(1, Number(character.level) || 1);
+  const xp = Math.max(0, Number(character.xp) || 0);
+  const threshold = level * 100;
+  const progress = Math.min(100, (xp / threshold) * 100);
+  const remainingXP = Math.max(0, threshold - xp);
+
   app.innerHTML = `
-    <main class="welcome life-dashboard">
+    <main class="welcome life-dashboard dashboard-v2">
+
       <div class="brand">IDOL<span>VERSE</span></div>
       <p class="eyebrow">YOUR LIFE · YOUR STORY</p>
 
-      ${avatarPreview(character)}
+      <section class="dashboard-identity">
+        ${avatarPreview(character)}
 
-      <h1>${escapeHTML(character.name)}</h1>
+        <div class="dashboard-intro">
+          <span class="dashboard-label">PLAYER PROFILE</span>
+          <h1>${escapeHTML(character.name)}</h1>
 
-      <div class="character-details">
-        <span>${escapeHTML(character.world)}</span>
-        <span>${escapeHTML(character.career)}</span>
-        <span>${escapeHTML(character.careerPath)}</span>
-      </div>
+          <div class="character-details">
+            <span>${escapeHTML(character.world)}</span>
+            <span>${escapeHTML(character.career)}</span>
+            <span>${escapeHTML(character.careerPath)}</span>
+          </div>
+        </div>
+      </section>
 
-      <div class="profile-rank">
-        <span>YOUR CURRENT RANK</span>
-        <strong>${escapeHTML(character.rank || "Beginner")}</strong>
-        <small>LEVEL ${character.level}</small>
-      </div>
+      <section class="dashboard-level">
+        <div class="level-heading">
+          <div>
+            <span class="dashboard-label">CURRENT RANK</span>
+            <h2>${escapeHTML(character.rank || "Beginner")}</h2>
+          </div>
 
-      <div class="grid">
-        <div class="stat">EXPERIENCE<strong>${character.xp} XP</strong></div>
-        <div class="stat">MONEY<strong>$${character.money.toLocaleString()}</strong></div>
-        <div class="stat">FAME<strong>${character.fame}</strong></div>
-        <div class="stat">REPUTATION<strong>${character.reputation}</strong></div>
-      </div>
+          <div class="level-number">
+            <span>LEVEL</span>
+            <strong>${level}</strong>
+          </div>
+        </div>
 
-      <div class="profile-info">
-        <div><span>GENDER</span><strong>${escapeHTML(character.gender)}</strong></div>
-        <div><span>PRONOUNS</span><strong>${escapeHTML(character.pronouns === "Custom" ? character.customPronouns : character.pronouns)}</strong></div>
-        <div><span>HOMETOWN</span><strong>${escapeHTML(character.hometown || "Not specified")}</strong></div>
-        <div><span>PERSONALITY</span><strong>${escapeHTML(character.personality)}</strong></div>
-        <div><span>IN-GAME DAY</span><strong>DAY ${character.day}</strong></div>
-      </div>
+        <div class="xp-information">
+          <span>EXPERIENCE PROGRESS</span>
+          <strong>${xp} / ${threshold} XP</strong>
+        </div>
 
-      <div class="profile-actions">
-        <button id="advance-day">CONTINUE YOUR STORY →</button>
-        <button class="secondary-button" id="switch-life">SWITCH LIFE</button>
-        <button class="danger-button" id="delete-current">DELETE THIS LIFE</button>
-      </div>
+        <div
+          class="xp-track"
+          role="progressbar"
+          aria-valuenow="${Math.round(progress)}"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-label="Experience progress"
+        >
+          <div
+            class="xp-fill"
+            style="width: ${progress}%"
+          ></div>
+        </div>
+
+        <p class="xp-remaining">
+          ${remainingXP} XP remaining until your next level
+        </p>
+      </section>
+
+      <section class="dashboard-stats">
+        <div class="dashboard-section-heading">
+          <span class="dashboard-label">YOUR PROGRESS</span>
+          <h3>Life Statistics</h3>
+        </div>
+
+        <div class="grid">
+          <div class="stat">
+            EXPERIENCE
+            <strong>${xp} XP</strong>
+          </div>
+
+          <div class="stat">
+            MONEY
+            <strong>$${Number(character.money || 0).toLocaleString()}</strong>
+          </div>
+
+          <div class="stat">
+            FAME
+            <strong>${character.fame || 0}</strong>
+          </div>
+
+          <div class="stat">
+            REPUTATION
+            <strong>${character.reputation || 0}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-personal">
+        <div class="dashboard-section-heading">
+          <span class="dashboard-label">GET TO KNOW YOU</span>
+          <h3>Personal Information</h3>
+        </div>
+
+        <div class="profile-info">
+          <div>
+            <span>GENDER</span>
+            <strong>${escapeHTML(character.gender)}</strong>
+          </div>
+
+          <div>
+            <span>PRONOUNS</span>
+            <strong>${escapeHTML(
+              character.pronouns === "Custom"
+                ? character.customPronouns
+                : character.pronouns
+            )}</strong>
+          </div>
+
+          <div>
+            <span>HOMETOWN</span>
+            <strong>${escapeHTML(character.hometown || "Not specified")}</strong>
+          </div>
+
+          <div>
+            <span>PERSONALITY</span>
+            <strong>${escapeHTML(character.personality)}</strong>
+          </div>
+
+          <div>
+            <span>IN-GAME DAY</span>
+            <strong>DAY ${character.day}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="profile-actions">
+        <button id="advance-day">
+          CONTINUE YOUR STORY →
+        </button>
+
+        <button class="secondary-button" id="switch-life">
+          SWITCH LIFE
+        </button>
+
+        <button class="danger-button" id="delete-current">
+          DELETE THIS LIFE
+        </button>
+      </section>
+
     </main>
   `;
 }
+
+
 
 /* ---------- GAME PROGRESSION ---------- */
 
