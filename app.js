@@ -6,14 +6,23 @@ const app = document.getElementById("app");
 
 let navigationHistory = [];
 
+
 function navigateTo(screenFunction, ...args) {
   navigationHistory.push({
     screen: currentScreen,
-    slot: selectedSlot
+    slot: selectedSlot,
+    step: currentStep,
+    wizard: wizard
+      ? {
+          ...wizard,
+          appearance: { ...wizard.appearance }
+        }
+      : null
   });
 
   screenFunction(...args);
 }
+
 
 function goBack() {
   if (navigationHistory.length === 0) {
@@ -35,7 +44,10 @@ function goBack() {
       break;
 
     case "creator":
-      startCreator(selectedSlot);
+      currentScreen = "creator";
+      wizard = previous.wizard;
+      currentStep = previous.step || 1;
+      renderWizard();
       break;
 
     case "dashboard":
@@ -46,6 +58,7 @@ function goBack() {
       showWelcome();
   }
 }
+
 
 let currentScreen = "welcome";
 
