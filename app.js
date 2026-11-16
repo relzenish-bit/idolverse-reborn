@@ -744,9 +744,18 @@ function renderWizard() {
     `;
   }
 
-  app.innerHTML = `
+  
+app.innerHTML = `
     <main class="welcome creator-screen">
+
+      <div class="game-navigation">
+        <button data-navBack>← BACK</button>
+        <button data-navHome>⌂ HOME</button>
+        <button data-navLives>MY LIVES</button>
+      </div>
+
       <div class="brand">IDOL<span>VERSE</span></div>
+
       <p class="eyebrow">CREATE YOUR IDENTITY · STEP ${currentStep} OF 5</p>
       <div class="wizard-progress">
         <div class="progress-step" style="width:${currentStep * 20}%"></div>
@@ -1137,11 +1146,10 @@ if (target.dataset.navBack !== undefined) {
   goBack();
   return;
 }
-
 if (target.dataset.navHome !== undefined) {
-  navigationHistory = [];
-  showWelcome();
+  navigateTo(showWelcome);
   return;
+
 }
 
 if (target.dataset.navLives !== undefined) {
