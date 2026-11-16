@@ -39,6 +39,236 @@ const careerPaths = {
   "Model": ["Runway", "Commercial", "Editorial"],
   "Create Your Own Career": ["Independent", "Professional", "Founder"]
 };
+/* ==========================================
+   IDOLVERSE — CAREER SYSTEM 2.0
+========================================== */
+
+const careerSystemV2 = {
+
+  "Footballer": {
+    category: "Athlete",
+    title: "Professional Footballer",
+    stats: [
+      { key: "appearances", label: "Appearances" },
+      { key: "goals", label: "Goals" },
+      { key: "assists", label: "Assists" },
+      { key: "trophies", label: "Trophies" },
+      { key: "team", label: "Current Club", type: "text", initial: "Unattached" }
+    ],
+    milestones: [
+      "Make your professional debut",
+      "Score your first goal",
+      "Win your first trophy",
+      "Become a club legend"
+    ]
+  },
+
+  "F1 Driver": {
+    category: "Motorsport",
+    title: "Professional Racing Driver",
+    stats: [
+      { key: "races", label: "Race Starts" },
+      { key: "wins", label: "Race Wins" },
+      { key: "podiums", label: "Podiums" },
+      { key: "poles", label: "Pole Positions" },
+      { key: "championships", label: "World Championships" },
+      { key: "team", label: "Current Team", type: "text", initial: "Unattached" }
+    ],
+    milestones: [
+      "Make your F1 debut",
+      "Score your first points",
+      "Achieve your first podium",
+      "Win your first Grand Prix",
+      "Become World Champion"
+    ]
+  },
+
+  "Basketball Player": {
+    category: "Athlete",
+    title: "Professional Basketball Player",
+    stats: [
+      { key: "games", label: "Games Played" },
+      { key: "points", label: "Points" },
+      { key: "assists", label: "Assists" },
+      { key: "rebounds", label: "Rebounds" },
+      { key: "championships", label: "Championships" },
+      { key: "team", label: "Current Team", type: "text", initial: "Unattached" }
+    ],
+    milestones: [
+      "Make your professional debut",
+      "Score 100 career points",
+      "Become an All-Star",
+      "Win your first championship"
+    ]
+  },
+
+  "Tennis Player": {
+    category: "Athlete",
+    title: "Professional Tennis Player",
+    stats: [
+      { key: "matches", label: "Matches Played" },
+      { key: "wins", label: "Match Wins" },
+      { key: "titles", label: "Career Titles" },
+      { key: "grandSlams", label: "Grand Slam Titles" },
+      { key: "ranking", label: "World Ranking", initial: 1000 }
+    ],
+    milestones: [
+      "Win your first professional match",
+      "Enter the world top 100",
+      "Win your first tournament",
+      "Win a Grand Slam"
+    ]
+  },
+
+  "K-pop Idol": {
+    category: "Music",
+    title: "K-pop Idol",
+    stats: [
+      { key: "debuted", label: "Debut Status", type: "text", initial: "Pre-debut" },
+      { key: "releases", label: "Music Releases" },
+      { key: "performances", label: "Performances" },
+      { key: "fans", label: "Fanbase" },
+      { key: "awards", label: "Awards" },
+      { key: "group", label: "Group", type: "text", initial: "Solo / Independent" },
+      { key: "agency", label: "Agency", type: "text", initial: "Independent" }
+    ],
+    milestones: [
+      "Complete trainee training",
+      "Make your official debut",
+      "Release your first comeback",
+      "Win your first music show",
+      "Hold your first world tour"
+    ]
+  },
+
+  "Actor": {
+    category: "Entertainment",
+    title: "Professional Actor",
+    stats: [
+      { key: "projects", label: "Acting Projects" },
+      { key: "films", label: "Films" },
+      { key: "series", label: "TV Series" },
+      { key: "awards", label: "Awards" },
+      { key: "boxOffice", label: "Box Office Earnings" }
+    ],
+    milestones: [
+      "Land your first acting role",
+      "Star in your first film",
+      "Receive your first award nomination",
+      "Win your first acting award"
+    ]
+  },
+
+  "Singer": {
+    category: "Music",
+    title: "Professional Singer",
+    stats: [
+      { key: "songs", label: "Songs Released" },
+      { key: "albums", label: "Albums" },
+      { key: "streams", label: "Total Streams" },
+      { key: "concerts", label: "Concerts" },
+      { key: "awards", label: "Music Awards" }
+    ],
+    milestones: [
+      "Release your first single",
+      "Reach one million streams",
+      "Release your first album",
+      "Sell out your first concert"
+    ]
+  },
+
+  "Model": {
+    category: "Fashion",
+    title: "Professional Model",
+    stats: [
+      { key: "campaigns", label: "Brand Campaigns" },
+      { key: "runways", label: "Runway Shows" },
+      { key: "covers", label: "Magazine Covers" },
+      { key: "contracts", label: "Brand Contracts" }
+    ],
+    milestones: [
+      "Book your first photoshoot",
+      "Walk your first runway",
+      "Land your first major campaign",
+      "Become a global fashion ambassador"
+    ]
+  }
+
+};
+
+
+/* ---------- CAREER PROFILE CREATION ---------- */
+
+function createCareerProgress(character) {
+  const career = careerSystemV2[character.career];
+
+  if (!career) {
+    return {
+      level: 1,
+      xp: 0,
+      stats: {},
+      achievements: []
+    };
+  }
+
+  const stats = {};
+
+  career.stats.forEach(stat => {
+    stats[stat.key] = stat.initial !== undefined
+      ? stat.initial
+      : stat.type === "text"
+        ? "Not set"
+        : 0;
+  });
+
+  return {
+    level: 1,
+    xp: 0,
+    stats,
+    achievements: []
+  };
+}
+
+
+/* ---------- CAREER PROFILE VALIDATION ---------- */
+
+function ensureCareerProgress(character) {
+  if (!character.careerProgress) {
+    character.careerProgress = createCareerProgress(character);
+  }
+
+  const career = careerSystemV2[character.career];
+
+  if (career) {
+    if (!character.careerProgress.stats) {
+      character.careerProgress.stats = {};
+    }
+
+    career.stats.forEach(stat => {
+      if (character.careerProgress.stats[stat.key] === undefined) {
+        character.careerProgress.stats[stat.key] =
+          stat.initial !== undefined
+            ? stat.initial
+            : stat.type === "text"
+              ? "Not set"
+              : 0;
+      }
+    });
+  }
+
+  character.careerProgress.level =
+    Math.max(1, Number(character.careerProgress.level) || 1);
+
+  character.careerProgress.xp =
+    Math.max(0, Number(character.careerProgress.xp) || 0);
+
+  if (!Array.isArray(character.careerProgress.achievements)) {
+    character.careerProgress.achievements = [];
+  }
+
+  return character.careerProgress;
+}
+
 
 const personalities = [
   "Ambitious",
