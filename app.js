@@ -1135,9 +1135,7 @@ function confirmDelete(slot) {
 }
 
 /* ---------- EVENT HANDLING ---------- */
-
-
-    return;document.addEventListener("click", event => {
+document.addEventListener("click", event => {
   const target = event.target.closest("button");
   if (!target) return;
 
