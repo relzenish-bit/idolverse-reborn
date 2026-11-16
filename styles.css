@@ -930,4 +930,62 @@ footer {
     justify-content: flex-start;
   }
 }
+/* CAREER STATISTICS */
+
+.dashboard-career {
+  width: 100%;
+  margin-top: 24px;
+  text-align: left;
+}
+
+.dashboard-career .dashboard-section-heading > p {
+  color: #a5a5ad;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.career-progression {
+  margin-top: 22px;
+  padding: 18px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.career-progression h3 {
+  margin: 8px 0;
+}
+
+.career-progression p {
+  color: #d6b875;
+  font-size: 13px;
+}
+
+.career-milestones {
+  margin-top: 22px;
+  padding: 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.career-milestone {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  color: #c5c5cc;
+  font-size: 13px;
+}
+
+.career-milestone:last-child {
+  border-bottom: none;
+}
+
+.career-milestone span {
+  color: #d6b875;
+  font-size: 18px;
+}
+
 
