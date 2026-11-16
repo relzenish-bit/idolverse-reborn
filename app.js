@@ -561,7 +561,11 @@ function showWelcome() {currentScreen = "welcome";
 
 function showLives() {currentScreen = "lives";
   app.innerHTML = `
-    <main class="welcome lives-screen">
+    <main class="welcome lives-screen"><div class="game-navigation">
+  <button data-nav-back>← BACK</button>
+  <button data-nav-home>⌂ HOME</button>
+  <button data-nav-lives>MY LIVES</button>
+</div>
       <div class="brand">IDOL<span>VERSE</span></div>
       <p class="eyebrow">YOUR JOURNEY STARTS HERE</p>
       <h1>Choose your <em>life.</em></h1>
