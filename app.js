@@ -1114,30 +1114,50 @@ function confirmDelete(slot) {
 
 /* ---------- EVENT HANDLING ---------- */
 
-document.addEventListener("click", event => {
+
+    return;document.addEventListener("click", event => {
   const target = event.target.closest("button");
   if (!target) return;
 
-  if (target.id === "begin") {
-    showLives();
-    return;
-  }
 
-  if (target.id === "home") {
-    showWelcome();
-    return;
-  }
+if (target.dataset.navBack !== undefined) {
+  goBack();
+  return;
+}
 
-  if (target.dataset.slot !== undefined) {
-    const slot = Number(target.dataset.slot);
+if (target.dataset.navHome !== undefined) {
+  navigationHistory = [];
+  showWelcome();
+  return;
+}
 
-    if (saves[slot]) {
-      openLife(slot);
-    } else {
-      startCreator(slot);
-    }
-    return;
+if (target.dataset.navLives !== undefined) {
+  navigateTo(showLives);
+  return;
+}
+
+if (target.id === "begin") {
+  navigateTo(showLives);
+  return;
+}
+
+if (target.id === "home") {
+  navigationHistory = [];
+  showWelcome();
+  return;
+}
+
+if (target.dataset.slot !== undefined) {
+  const slot = Number(target.dataset.slot);
+
+  if (saves[slot]) {
+    navigateTo(openLife, slot);
+  } else {
+    navigateTo(startCreator, slot);
   }
+  return;
+}
+
 
   if (target.dataset.deleteSlot !== undefined) {
     deleteLife(Number(target.dataset.deleteSlot));
@@ -1222,7 +1242,6 @@ document.addEventListener("click", event => {
 
   if (target.id === "advance-day") {
     advanceDay();
-    return;
   }
 
   if (target.id === "switch-life") {
