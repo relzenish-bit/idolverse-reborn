@@ -781,3 +781,153 @@ footer {
     transition-duration: .01ms !important;
   }
 }
+/* ---------- DASHBOARD 2.0 ---------- */
+
+.dashboard-v2 {
+  max-width: 850px;
+}
+
+.dashboard-identity {
+  margin-top: 15px;
+}
+
+.dashboard-identity .avatar-preview {
+  margin-bottom: 15px;
+}
+
+.dashboard-intro {
+  text-align: center;
+}
+
+.dashboard-intro h1 {
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-label {
+  display: block;
+  color: var(--gold);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.dashboard-level {
+  background:
+    radial-gradient(ellipse at 100% 0%, #c9a76b20, transparent 65%),
+    linear-gradient(145deg, #1b1e26, #101116);
+  border: 1px solid #9e805055;
+  border-radius: 18px;
+  padding: 22px;
+  margin: 25px 0;
+}
+
+.level-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.level-heading h2 {
+  color: var(--gold2);
+  margin: 8px 0 0;
+}
+
+.level-number {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.level-number span {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+
+.level-number strong {
+  color: var(--gold2);
+  font-family: 'Playfair Display', serif;
+  font-size: 35px;
+}
+
+.xp-information {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 25px;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: .8px;
+}
+
+.xp-information strong {
+  color: var(--gold2);
+}
+
+.xp-track {
+  height: 9px;
+  background: #08090b;
+  border: 1px solid #ffffff12;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #a9824c, #f1d6a3);
+  border-radius: 20px;
+  box-shadow: 0 0 12px #c9a76b66;
+  transition: width .6s ease;
+}
+
+.xp-remaining {
+  color: var(--muted);
+  font-size: 10px;
+  margin: 12px 0 0;
+}
+
+.dashboard-section-heading {
+  margin: 30px 0 15px;
+  text-align: left;
+}
+
+.dashboard-section-heading h3 {
+  color: var(--text);
+  font-size: 22px;
+  margin: 7px 0;
+  font-family: 'Playfair Display', serif;
+}
+
+.dashboard-stats,
+.dashboard-personal {
+  width: 100%;
+}
+
+@media (min-width: 650px) {
+  .dashboard-identity {
+    display: flex;
+    align-items: center;
+    gap: 35px;
+  }
+
+  .dashboard-identity .avatar-preview {
+    flex: 0 0 300px;
+    margin: 20px 0;
+  }
+
+  .dashboard-intro {
+    flex: 1;
+    text-align: left;
+    min-width: 0;
+  }
+
+  .dashboard-intro .character-details {
+    justify-content: flex-start;
+  }
+}
+
