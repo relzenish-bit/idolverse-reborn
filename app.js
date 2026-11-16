@@ -2,6 +2,13 @@ const STORE = "idolverse_reborn_saves";
 const app = document.querySelector("#app");
 
 let saves = [];
+let wizard = {};
+let currentSlot = 0;
+let step = 1;
+let pendingDeleteSlot = null;
+let toastTimer = null;
+
+// ---------- SAVE DATA ----------
 
 try {
   const stored = JSON.parse(localStorage.getItem(STORE) || "[]");
@@ -11,6 +18,58 @@ try {
 } catch {
   saves = Array(5).fill(null);
 }
+
+function save() {
+  localStorage.setItem(STORE, JSON.stringify(saves));
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[c]);
+}
+
+function safeNumber(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+// Add new fields to older characters without removing their existing data.
+function normalizeCharacter(character) {
+  if (!character) return null;
+
+  return {
+    ...character,
+    gender: character.gender || "Not specified",
+    pronouns: character.pronouns || "Not specified",
+    appearance: {
+      skin: "Tan",
+      face: "Oval",
+      hair: "Long Straight",
+      hairColor: "Black",
+      eyes: "Brown",
+      body: "Average",
+      outfit: "Casual",
+      accessory: "None",
+      ...(character.appearance || {})
+    },
+    level: safeNumber(character.level, 1),
+    xp: safeNumber(character.xp),
+    fame: safeNumber(character.fame),
+    money: safeNumber(character.money, 10000),
+    reputation: safeNumber(character.reputation, 50),
+    day: safeNumber(character.day, 1),
+    rank: character.rank || "Beginner"
+  };
+}
+
+saves = saves.map(normalizeCharacter);
+
+// ---------- CREATOR OPTIONS ----------
 
 const options = {
   skin: ["Porcelain", "Fair", "Light", "Olive", "Tan", "Caramel", "Brown", "Deep Brown", "Dark"],
@@ -22,6 +81,14 @@ const options = {
   outfit: ["Casual", "Streetwear", "Luxury", "Formal", "Sporty", "K-pop Stage", "Elegant"],
   accessory: ["None", "Glasses", "Sunglasses", "Earrings", "Necklace", "Cap", "Headphones"]
 };
+
+const genders = [
+  "Male", "Female", "Non-binary", "Other", "Prefer not to say"
+];
+
+const pronouns = [
+  "He / Him", "She / Her", "They / Them", "Custom"
+];
 
 const worlds = [
   "Hollywood", "K-Pop", "Japanese Entertainment",
@@ -158,79 +225,50 @@ const hairShapes = {
   }
 };
 
-let wizard = {};
-let currentSlot = 0;
-let step = 1;
+// ---------- SMALL UI HELPERS ----------
 
-function save() {
-  localStorage.setItem(STORE, JSON.stringify(saves));
+function showToast(message, type = "success") {
+  document.querySelector(".iv-toast")?.remove();
+
+  const toast = document.createElement("div");
+  toast.className = `iv-toast ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.remove(), 2600);
 }
 
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[c]);
+function choiceButtons(values, selected, attribute) {
+  return `
+    <div class="choice-grid">
+      ${values.map(value => `
+        <button type="button"
+          class="choice-card ${selected === value ? "selected" : ""}"
+          ${attribute}="${escapeHTML(value)}">
+          ${escapeHTML(value)}
+        </button>
+      `).join("")}
+    </div>`;
 }
 
-function begin() {
-  showLives();
+function fieldHeading(title, subtitle = "") {
+  return `
+    <div class="creator-heading">
+      <h3>${title}</h3>
+      ${subtitle ? `<p>${subtitle}</p>` : ""}
+    </div>`;
 }
 
-function showLives() {
-  app.innerHTML = `
-    <main class="welcome">
-      <div class="brand">IDOL<span>VERSE</span></div>
-      <p class="eyebrow">CHOOSE YOUR LIFE</p>
-      <h1>Every life has<br><em>a story.</em></h1>
-
-      <div class="save-grid">
-        ${Array.from({ length: 5 }, (_, i) => {
-          const s = saves[i];
-          return `
-            <div style="display:flex;flex-direction:column;gap:7px">
-              <button class="save-card" data-slot="${i}">
-                <span class="save-number">LIFE 0${i + 1}</span>
-                <strong>${s ? escapeHTML(s.name) : "Empty Life"}</strong>
-                <span>${s ? escapeHTML(s.careerPath || s.career) : "Create a new identity"}</span>
-              </button>
-              ${s ? `<button data-delete-slot="${i}" style="background:#351b1b;border:1px solid #713c3c;color:#ffaaaa;border-radius:9px;padding:10px">DELETE LIFE</button>` : ""}
-            </div>`;
-        }).join("")}
-      </div>
-
-      <button id="home">BACK</button>
-    </main>`;
+function selectOptions(key, label) {
+  return `
+    <div class="creator-field">
+      <label>${label}</label>
+      ${choiceButtons(options[key], wizard.appearance[key], `data-appearance="${key}" data-value`)}
+    </div>`;
 }
 
-function startCreator(slot) {
-  currentSlot = slot;
-  step = 1;
-
-  wizard = {
-    name: "",
-    hometown: "",
-    world: "Hollywood",
-    career: "Actor",
-    careerPath: "Film Actor",
-    personality: "Ambitious",
-    appearance: {
-      skin: "Tan",
-      face: "Oval",
-      hair: "Long Straight",
-      hairColor: "Black",
-      eyes: "Brown",
-      body: "Average",
-      outfit: "Casual",
-      accessory: "None"
-    }
-  };
-
-  renderWizard();
-}
+// ---------- AVATAR PREVIEW ----------
 
 function avatarPreview() {
   const a = wizard.appearance;
@@ -265,11 +303,7 @@ function avatarPreview() {
   }
 
   if (a.accessory === "Earrings") {
-    accessory = `
-      <g fill="#e6c47c">
-        <circle cx="83" cy="132" r="4"/>
-        <circle cx="177" cy="132" r="4"/>
-      </g>`;
+    accessory = `<g fill="#e6c47c"><circle cx="83" cy="132" r="4"/><circle cx="177" cy="132" r="4"/></g>`;
   }
 
   if (a.accessory === "Necklace") {
@@ -282,8 +316,7 @@ function avatarPreview() {
 
   if (a.accessory === "Headphones") {
     accessory = `
-      <path d="M74 109 Q74 38 130 38 Q186 38 186 109"
-        stroke="#25252b" stroke-width="9" fill="none"/>
+      <path d="M74 109 Q74 38 130 38 Q186 38 186 109" stroke="#25252b" stroke-width="9" fill="none"/>
       <rect x="68" y="100" width="13" height="35" rx="6" fill="#25252b"/>
       <rect x="179" y="100" width="13" height="35" rx="6" fill="#25252b"/>`;
   }
@@ -297,70 +330,101 @@ function avatarPreview() {
             <stop offset="100%" stop-color="#000000" stop-opacity=".15"/>
           </linearGradient>
         </defs>
-
-        <!-- Back hair -->
         <path d="${hairstyle.back}" fill="${hair}"/>
-
-        <!-- Neck -->
         <rect x="113" y="164" width="34" height="45" rx="12" fill="${skin}"/>
-
-        <!-- Clothing -->
-        <path d="M72 291 Q75 214 110 202 L130 218 L150 202 Q185 214 188 291Z"
-          fill="${outfit}"/>
+        <path d="M72 291 Q75 214 110 202 L130 218 L150 202 Q185 214 188 291Z" fill="${outfit}"/>
         <path d="M110 202 L130 219 L150 202" fill="none" stroke="#ffffff" stroke-opacity=".3" stroke-width="3"/>
-
-        <!-- Face -->
         <path d="${face}" fill="${skin}" stroke="#000000" stroke-opacity=".1" stroke-width="2"/>
-
-        <!-- Eyebrows -->
-        <path d="M94 99 Q105 91 117 98 M143 98 Q155 91 166 99"
-          stroke="#3a2820" stroke-width="4" stroke-linecap="round" fill="none"/>
-
-        <!-- Eyes -->
+        <path d="M94 99 Q105 91 117 98 M143 98 Q155 91 166 99" stroke="#3a2820" stroke-width="4" stroke-linecap="round" fill="none"/>
         <ellipse cx="105" cy="113" rx="8" ry="5" fill="#fff"/>
         <ellipse cx="155" cy="113" rx="8" ry="5" fill="#fff"/>
         <circle cx="105" cy="113" r="4" fill="${eyes}"/>
         <circle cx="155" cy="113" r="4" fill="${eyes}"/>
         <circle cx="106" cy="112" r="1.5" fill="#fff"/>
         <circle cx="156" cy="112" r="1.5" fill="#fff"/>
-
-        <!-- Nose and mouth -->
-        <path d="M130 115 L125 139 Q130 143 135 139"
-          stroke="#805b48" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <path d="M119 157 Q130 164 141 157"
-          stroke="#944e54" stroke-width="3" fill="none" stroke-linecap="round"/>
-
-        <!-- Front hair -->
+        <path d="M130 115 L125 139 Q130 143 135 139" stroke="#805b48" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M119 157 Q130 164 141 157" stroke="#944e54" stroke-width="3" fill="none" stroke-linecap="round"/>
         <path d="${hairstyle.front}" fill="${hair}"/>
-
-        <!-- Accessories -->
         ${accessory}
-
-        <!-- Subtle light -->
         <path d="M0 0 H260 V310 H0Z" fill="url(#avatarGlow)" pointer-events="none"/>
       </svg>
       <div class="avatar-label">${escapeHTML(a.hair)} · ${escapeHTML(a.body)}</div>
     </div>`;
 }
 
-function selectOptions(key, label) {
-  return `
-    <div class="creator-field">
-      <label>${label}</label>
-      <div class="choice-grid">
-        ${options[key].map(value => `
-          <button class="choice-card ${wizard.appearance[key] === value ? "selected" : ""}"
-            data-appearance="${key}" data-value="${escapeHTML(value)}">
-            ${escapeHTML(value)}
-          </button>
-        `).join("")}
+// ---------- WELCOME AND SAVE SLOTS ----------
+
+function begin() {
+  showLives();
+}
+
+function showLives() {
+  app.innerHTML = `
+    <main class="welcome lives-screen">
+      <div class="brand">IDOL<span>VERSE</span></div>
+      <p class="eyebrow">YOUR UNIVERSE AWAITS</p>
+      <h1>Choose your<br><em>next life.</em></h1>
+      <p class="intro">Five lives. Five different stories. Which one will you live?</p>
+
+      <div class="save-grid">
+        ${Array.from({ length: 5 }, (_, i) => {
+          const s = saves[i];
+
+          return `
+            <article class="save-slot ${s ? "occupied" : "empty"}">
+              <button class="save-card" data-slot="${i}">
+                <span class="save-number">LIFE 0${i + 1}</span>
+                <strong>${s ? escapeHTML(s.name) : "Create a new life"}</strong>
+                <span>${s ? escapeHTML(s.world || "Unknown Universe") : "An entirely new story awaits"}</span>
+                ${s ? `<span class="save-career">${escapeHTML(s.careerPath || s.career || "New Life")}</span>` : `<span class="save-plus">＋</span>`}
+              </button>
+              ${s ? `<button class="delete-slot-button" data-delete-slot="${i}">DELETE LIFE</button>` : ""}
+            </article>`;
+        }).join("")}
       </div>
-    </div>`;
+      <button class="secondary-button" id="home">BACK TO WELCOME</button>
+    </main>`;
+}
+
+// ---------- CHARACTER CREATOR ----------
+
+function startCreator(slot) {
+  currentSlot = slot;
+  step = 1;
+
+  wizard = {
+    name: "",
+    hometown: "",
+    gender: "Male",
+    pronouns: "He / Him",
+    customPronouns: "",
+    world: "Hollywood",
+    career: "Actor",
+    careerPath: "Film Actor",
+    personality: "Ambitious",
+    appearance: {
+      skin: "Tan",
+      face: "Oval",
+      hair: "Long Straight",
+      hairColor: "Black",
+      eyes: "Brown",
+      body: "Average",
+      outfit: "Casual",
+      accessory: "None"
+    }
+  };
+
+  renderWizard();
 }
 
 function captureIdentity() {
-  wizard.name = document.querySelector("#charName")?.value.trim() || wizard.name;
-  wizard.hometown = document.querySelector("#hometown")?.value.trim() || wizard.hometown;
+  const name = document.querySelector("#charName");
+  const hometown = document.querySelector("#hometown");
+  const customPronouns = document.querySelector("#customPronouns");
+
+  if (name) wizard.name = name.value.trim();
+  if (hometown) wizard.hometown = hometown.value.trim();
+  if (customPronouns) wizard.customPronouns = customPronouns.value.trim();
 }
 
 function renderWizard() {
@@ -368,256 +432,129 @@ function renderWizard() {
 
   if (step === 1) {
     content = `
-      <h2>Who are you?</h2>
-      <input class="creator-input" id="charName" placeholder="Character name" value="${escapeHTML(wizard.name)}">
-      <input class="creator-input" id="hometown" placeholder="Hometown / City" value="${escapeHTML(wizard.hometown)}">
-      <h3>Your appearance</h3>
-      ${avatarPreview()}
-      ${selectOptions("skin", "Skin tone")}
-      ${selectOptions("face", "Face shape")}`;
+      ${fieldHeading("Your identity", "First, let's get to know you.")}
+      <input class="creator-input" id="charName" maxlength="35" placeholder="Character name" value="${escapeHTML(wizard.name)}">
+      <input class="creator-input" id="hometown" maxlength="45" placeholder="Hometown / City" value="${escapeHTML(wizard.hometown)}">
+
+      ${fieldHeading("Gender", "Choose how your character identifies.")}
+      ${choiceButtons(genders, wizard.gender, "data-gender")}
+
+      ${fieldHeading("Pronouns", "Choose the pronouns used for your character.")}
+      ${choiceButtons(pronouns, wizard.pronouns, "data-pronouns")}
+
+      ${wizard.pronouns === "Custom" ? `
+        <input class="creator-input" id="customPronouns" maxlength="30" placeholder="Enter your pronouns" value="${escapeHTML(wizard.customPronouns)}">
+      ` : ""}
+
+      <p class="creator-note">Your gender and pronouns never restrict your career, clothing, appearance or relationships.</p>
+    `;
   }
 
   if (step === 2) {
     content = `
-      <h2>Your hairstyle</h2>
+      ${fieldHeading("Your appearance", "Create a look that feels like you.")}
       ${avatarPreview()}
-      ${selectOptions("hair", "Hairstyle")}
-      ${selectOptions("hairColor", "Hair colour")}
-      ${selectOptions("eyes", "Eye colour")}`;
+      ${selectOptions("skin", "Skin tone")}
+      ${selectOptions("face", "Face shape")}
+    `;
   }
 
   if (step === 3) {
     content = `
-      <h2>Your style</h2>
+      ${fieldHeading("Your personal style", "Your look, your rules.")}
       ${avatarPreview()}
+      ${selectOptions("hair", "Hairstyle")}
+      ${selectOptions("hairColor", "Hair colour")}
+      ${selectOptions("eyes", "Eye colour")}
       ${selectOptions("body", "Body type")}
       ${selectOptions("outfit", "Outfit")}
-      ${selectOptions("accessory", "Accessories")}`;
+      ${selectOptions("accessory", "Accessories")}
+    `;
   }
 
   if (step === 4) {
     content = `
-      <h2>Choose your universe</h2>
-      <div class="choice-grid">
-        ${worlds.map(w => `
-          <button class="choice-card ${wizard.world === w ? "selected" : ""}" data-world="${escapeHTML(w)}">${escapeHTML(w)}</button>
-        `).join("")}
-      </div>
+      ${fieldHeading("Choose your universe", "Where will your story begin?")}
+      ${choiceButtons(worlds, wizard.world, "data-world")}
 
-      <h2>Choose your career</h2>
-      <div class="choice-grid">
-        ${careers.map(c => `
-          <button class="choice-card ${wizard.career === c ? "selected" : ""}" data-career="${escapeHTML(c)}">${escapeHTML(c)}</button>
-        `).join("")}
-      </div>
+      ${fieldHeading("Choose your career", "What do you want to become?")}
+      ${choiceButtons(careers, wizard.career, "data-career")}
 
-      <h3>Choose your path</h3>
-      <div class="choice-grid">
-        ${(careerPaths[wizard.career] || ["Custom Path"]).map(p => `
-          <button class="choice-card ${wizard.careerPath === p ? "selected" : ""}" data-path="${escapeHTML(p)}">${escapeHTML(p)}</button>
-        `).join("")}
-      </div>
+      ${fieldHeading("Choose your path", "Pick your starting specialization.")}
+      ${choiceButtons(careerPaths[wizard.career] || ["Custom Path"], wizard.careerPath, "data-path")}
 
-      <h3>Personality</h3>
-      <div class="choice-grid">
-        ${personalities.map(p => `
-          <button class="choice-card ${wizard.personality === p ? "selected" : ""}" data-personality="${escapeHTML(p)}">${escapeHTML(p)}</button>
-        `).join("")}
-      </div>`;
+      ${fieldHeading("Your personality", "What kind of person are you?")}
+      ${choiceButtons(personalities, wizard.personality, "data-personality")}
+    `;
   }
+
+  if (step === 5) {
+    content = `
+      ${fieldHeading("Your identity is ready", "Take one last look before starting your life.")}
+      ${avatarPreview()}
+      <div class="character-review">
+        <h2>${escapeHTML(wizard.name || "Your Character")}</h2>
+        <p>${escapeHTML(wizard.gender)} · ${escapeHTML(wizard.pronouns === "Custom" ? wizard.customPronouns : wizard.pronouns)}</p>
+        <p>${escapeHTML(wizard.hometown || "Hometown not set")}</p>
+        <div class="review-line"><span>Universe</span><strong>${escapeHTML(wizard.world)}</strong></div>
+        <div class="review-line"><span>Career</span><strong>${escapeHTML(wizard.career)}</strong></div>
+        <div class="review-line"><span>Specialization</span><strong>${escapeHTML(wizard.careerPath)}</strong></div>
+        <div class="review-line"><span>Personality</span><strong>${escapeHTML(wizard.personality)}</strong></div>
+      </div>
+      <p class="creator-note">Your journey begins with a fresh identity. Your other save slots will remain untouched.</p>
+    `;
+  }
+
+  const stepNames = ["IDENTITY", "FACE", "STYLE", "UNIVERSE", "REVIEW"];
 
   app.innerHTML = `
     <main class="welcome creator-screen">
       <div class="brand">IDOL<span>VERSE</span></div>
-      <p class="eyebrow">CREATE YOUR IDENTITY · STEP ${step} OF 4</p>
+      <p class="eyebrow">CREATE YOUR IDENTITY · STEP ${step} OF 5</p>
       <div class="wizard-progress">
-        <div class="progress-step" style="width:${step * 25}%"></div>
+        <div class="progress-step" style="width:${step * 20}%"></div>
       </div>
+      <p class="step-name">${stepNames[step - 1]}</p>
       <section class="creator-content">${content}</section>
       <div class="creator-navigation">
-        ${step > 1 ? '<button data-back>BACK</button>' : ""}
-        ${step < 4 ? '<button data-next>CONTINUE →</button>' : '<button data-finish>CREATE MY LIFE ✨</button>'}
+        <button class="secondary-button" data-back>BACK</button>
+        ${step < 5
+          ? `<button data-next>CONTINUE →</button>`
+          : `<button data-finish>CREATE MY LIFE ✨</button>`}
       </div>
     </main>`;
+}
+
+function nextStep() {
+  captureIdentity();
+
+  if (step === 1 && !wizard.name) {
+    showToast("Please enter your character's name.", "error");
+    return;
+  }
+
+  if (step === 1 && wizard.pronouns === "Custom" && !wizard.customPronouns) {
+    showToast("Please enter your custom pronouns.", "error");
+    return;
+  }
+
+  if (step < 5) {
+    step++;
+    renderWizard();
+  }
+}
+
+function previousStep() {
+  captureIdentity();
+
+  if (step > 1) {
+    step--;
+    renderWizard();
+  }
 }
 
 function finishCreation() {
   captureIdentity();
 
   if (!wizard.name) {
-    alert("Please enter your character's name first.");
-    return;
-  }
-
-  const character = {
-    ...wizard,
-    appearance: { ...wizard.appearance },
-    id: Date.now().toString(),
-    day: 1,
-    money: 10000,
-    fame: 0,
-    reputation: 50,
-    xp: 0,
-    level: 1,
-    rank: "Beginner",
-    createdAt: Date.now()
-  };
-
-  saves[currentSlot] = character;
-  save();
-  openLife(currentSlot);
-}
-
-function avatarPreviewFor(character) {
-  const old = wizard;
-  wizard = character;
-  const result = avatarPreview();
-  wizard = old;
-  return result;
-}
-
-function openLife(slot) {
-  currentSlot = slot;
-  const s = saves[slot];
-
-  if (!s) {
-    showLives();
-    return;
-  }
-
-  app.innerHTML = `
-    <main class="welcome life-dashboard">
-      <div class="brand">IDOL<span>VERSE</span></div>
-      ${avatarPreviewFor(s)}
-      <p class="eyebrow">${escapeHTML(s.world)} · ${escapeHTML(s.careerPath)}</p>
-      <h1>Welcome,<br><em>${escapeHTML(s.name)}.</em></h1>
-
-      <div class="grid">
-        <div class="stat">LEVEL<strong>${s.level}</strong></div>
-        <div class="stat">XP<strong>${s.xp}</strong></div>
-        <div class="stat">FAME<strong>${s.fame}</strong></div>
-        <div class="stat">MONEY<strong>$${Number(s.money).toLocaleString()}</strong></div>
-      </div>
-
-      <h3>RANK · ${escapeHTML(s.rank)}</h3>
-      <p>Day ${s.day} · ${escapeHTML(s.personality)}</p>
-
-      <button data-day>ADVANCE DAY →</button>
-      <button data-lives>SWITCH LIFE</button>
-      <button data-delete-active style="background:#351b1b;color:#ffaaaa;border:1px solid #713c3c">DELETE THIS LIFE</button>
-    </main>`;
-}
-
-function deleteLife(slot) {
-  if (!saves[slot]) return;
-
-  const name = saves[slot].name || "this character";
-  const confirmed = confirm(
-    `Permanently delete ${name}?\n\nThis will erase this life and its progress. Your other save slots will not be affected.`
-  );
-
-  if (!confirmed) return;
-
-  saves[slot] = null;
-  save();
-  showLives();
-}
-
-function advanceDay() {
-  const s = saves[currentSlot];
-  if (!s) return;
-
-  s.day++;
-  s.xp += 50;
-
-  if (s.xp >= s.level * 200) {
-    s.xp = 0;
-    s.level++;
-    s.rank = s.level >= 10
-      ? "Rising Star"
-      : s.level >= 5
-        ? "Rookie"
-        : "Beginner";
-
-    alert("LEVEL UP! Welcome to level " + s.level + "!");
-  }
-
-  save();
-  openLife(currentSlot);
-}
-
-app.addEventListener("click", event => {
-  const target = event.target.closest("button");
-  if (!target) return;
-
-  if (target.id === "begin") begin();
-  if (target.id === "home") location.reload();
-
-  if (target.dataset.slot !== undefined) {
-    const slot = Number(target.dataset.slot);
-
-    if (saves[slot]) {
-      openLife(slot);
-    } else {
-      startCreator(slot);
-    }
-  }
-
-  if (target.dataset.deleteSlot !== undefined) {
-    deleteLife(Number(target.dataset.deleteSlot));
-  }
-
-  if (target.hasAttribute("data-next")) {
-    if (step === 1) {
-      captureIdentity();
-
-      if (!wizard.name) {
-        alert("Please enter your character's name.");
-        return;
-      }
-    }
-
-    step++;
-    renderWizard();
-  }
-
-  if (target.hasAttribute("data-back")) {
-    if (step === 1) captureIdentity();
-    step--;
-    renderWizard();
-  }
-
-  if (target.dataset.appearance) {
-    if (step === 1) captureIdentity();
-
-    wizard.appearance[target.dataset.appearance] = target.dataset.value;
-    renderWizard();
-  }
-
-  if (target.dataset.world) {
-    wizard.world = target.dataset.world;
-    renderWizard();
-  }
-
-  if (target.dataset.career) {
-    wizard.career = target.dataset.career;
-    wizard.careerPath = careerPaths[wizard.career][0];
-    renderWizard();
-  }
-
-  if (target.dataset.path) {
-    wizard.careerPath = target.dataset.path;
-    renderWizard();
-  }
-
-  if (target.dataset.personality) {
-    wizard.personality = target.dataset.personality;
-    renderWizard();
-  }
-
-  if (target.hasAttribute("data-finish")) finishCreation();
-  if (target.hasAttribute("data-day")) advanceDay();
-  if (target.hasAttribute("data-lives")) showLives();
-  if (target.hasAttribute("data-delete-active")) deleteLife(currentSlot);
-});
-    
+    showT
