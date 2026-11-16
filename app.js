@@ -783,6 +783,35 @@ function openLife(slot) {
   const threshold = level * 100;
   const progress = Math.min(100, (xp / threshold) * 100);
   const remainingXP = Math.max(0, threshold - xp);
+  const career = careerSystemV2[character.career];
+  const careerProgress = ensureCareerProgress(character);
+
+  const careerStatsHTML = career
+    ? career.stats.map(stat => {
+        const value = careerProgress.stats[stat.key];
+
+        return `
+          <div class="stat">
+            ${escapeHTML(stat.label.toUpperCase())}
+            <strong>
+              ${typeof value === "number"
+                ? value.toLocaleString()
+                : escapeHTML(String(value))}
+            </strong>
+          </div>
+        `;
+      }).join("")
+    : `<p class="creator-note">Career statistics coming soon!</p>`;
+
+  const careerMilestonesHTML = career
+    ? career.milestones.map(milestone => `
+        <div class="career-milestone">
+          <span>◇</span>
+          ${escapeHTML(milestone)}
+        </div>
+      `).join("")
+    : "";
+
 
   app.innerHTML = `
     <main class="welcome life-dashboard dashboard-v2">
@@ -872,6 +901,31 @@ function openLife(slot) {
       </section>
 
       <section class="dashboard-personal">
+<section class="dashboard-career">
+  <div class="dashboard-section-heading">
+    <span class="dashboard-label">YOUR PROFESSION</span>
+    <h3>Career Statistics</h3>
+    <p>${escapeHTML(career ? career.title : character.career)}</p>
+  </div>
+
+  <div class="grid">
+    ${careerStatsHTML}
+  </div>
+
+  ${career ? `
+    <div class="career-progression">
+      <span class="dashboard-label">CAREER PROGRESSION</span>
+      <h3>Career Level ${careerProgress.level}</h3>
+      <p>${careerProgress.xp} Career XP</p>
+    </div>
+
+    <div class="career-milestones">
+      <span class="dashboard-label">CAREER MILESTONES</span>
+      ${careerMilestonesHTML}
+    </div>
+  ` : ""}
+</section>
+
         <div class="dashboard-section-heading">
           <span class="dashboard-label">GET TO KNOW YOU</span>
           <h3>Personal Information</h3>
