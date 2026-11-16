@@ -334,10 +334,11 @@ function saveSaves() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(saves));
 }
 
+
 function normalizeCharacter(character) {
   if (!character) return null;
 
-  return {
+  const normalized = {
     ...character,
     gender: character.gender || "Prefer not to say",
     pronouns: character.pronouns || "They / Them",
@@ -353,7 +354,12 @@ function normalizeCharacter(character) {
     reputation: Number(character.reputation) || 0,
     day: Number(character.day) || 1
   };
+
+  ensureCareerProgress(normalized);
+
+  return normalized;
 }
+
 
 /* ---------- HELPERS ---------- */
 
