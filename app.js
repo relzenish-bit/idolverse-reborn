@@ -1,5 +1,54 @@
 
 const app = document.getElementById("app");
+/* ==========================================
+   IDOLVERSE — NAVIGATION SYSTEM 2.0
+========================================== */
+
+let navigationHistory = [];
+
+function navigateTo(screenFunction, ...args) {
+  navigationHistory.push({
+    screen: currentScreen,
+    slot: selectedSlot
+  });
+
+  screenFunction(...args);
+}
+
+function goBack() {
+  if (navigationHistory.length === 0) {
+    showWelcome();
+    return;
+  }
+
+  const previous = navigationHistory.pop();
+
+  selectedSlot = previous.slot;
+
+  switch (previous.screen) {
+    case "welcome":
+      showWelcome();
+      break;
+
+    case "lives":
+      showLives();
+      break;
+
+    case "creator":
+      startCreator(selectedSlot);
+      break;
+
+    case "dashboard":
+      openLife(selectedSlot);
+      break;
+
+    default:
+      showWelcome();
+  }
+}
+
+let currentScreen = "welcome";
+
 
 const STORAGE_KEY = "idolverse_reborn_saves";
 const TOTAL_SLOTS = 5;
@@ -475,7 +524,7 @@ function avatarPreview(character) {
 
 /* ---------- WELCOME AND SAVE SLOTS ---------- */
 
-function showWelcome() {
+function showWelcome() {currentScreen = "welcome";
   app.innerHTML = `
     <main class="welcome">
       <div class="brand">IDOL<span>VERSE</span></div>
@@ -497,7 +546,7 @@ function showWelcome() {
   `;
 }
 
-function showLives() {
+function showLives() {currentScreen = "lives";
   app.innerHTML = `
     <main class="welcome lives-screen">
       <div class="brand">IDOL<span>VERSE</span></div>
@@ -536,7 +585,7 @@ function showLives() {
 
 /* ---------- CHARACTER CREATOR ---------- */
 
-function startCreator(slot) {
+function startCreator(slot) {currentScreen = "creator";
   selectedSlot = slot;
   currentStep = 1;
 
@@ -769,7 +818,7 @@ function finishCreation() {
 
 /* ---------- CHARACTER PROFILE ---------- */
 
-function openLife(slot) {
+function openLife(slot) {currentScreen = "dashboard";
   selectedSlot = slot;
   const character = saves[slot];
 
